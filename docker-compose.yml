@@ -1,0 +1,60 @@
+version: "3.8"
+
+services: 
+  sample-a:
+    image: maya-sample-a
+    build: 
+      context: ./sample-a
+      dockerfile: Dockerfile
+    ports: 
+      - 3005:3000
+    depends_on: 
+      - mysql_maya_user
+    volumes: 
+      - .:/app
+      - /app/sample-a/node_modules
+    container_name: maya-sample-a
+
+  sample-b:
+    image: maya-sample-b
+    build: 
+      context: ./sample-b
+      dockerfile: Dockerfile
+    ports: 
+      - 4005:4000
+    volumes: 
+      - .:/app
+      - /app/sample-b/node_modules
+    depends_on: 
+      - mysql_maya_user
+    container_name: maya-sample-b
+
+  mysql_maya_user:
+    image: mysql
+    environment: 
+      - MYSQL_ROOT_PASSWORD=123456789
+      - MYSQL_USER=maya
+      - MYSQL_PASSWORD=123
+    volumes:
+      - ./init:/docker-entrypoint-initdb.d
+    container_name: mysql_maya_user
+
+  maya-phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    environment:
+      - PMA_HOST=mysql_maya_user
+      - PMA_PORT=3306
+    ports:
+      - 5005:80
+    volumes:
+      - /sessions
+    container_name: maya-phpmyadmin
+
+  maya-nginx:
+    image: nginx
+    ports:
+      - 80:80
+    environment:
+      - NGINX_HOST=localhost
+      - NGINX_PORT=80
+    container_name: maya-nginx
